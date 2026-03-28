@@ -1,142 +1,170 @@
-# 🌐 Investigación: Direcciones IP
+# 🌐 Managing IP Addresses — Actividad Grupal
 
-## ¿Qué es una dirección IP?
+Guía práctica sobre direcciones IP y su gestión, conectado directamente con el trabajo de un desarrollador: APIs, servidores, despliegues y debugging.
 
-Una dirección IP es simplemente el "domicilio" de tu dispositivo en internet. Así como cada casa tiene una dirección para que el cartero sepa dónde entregar, cada dispositivo tiene una IP para que los datos sepan a dónde llegar.
+> *"Cada vez que haces un fetch, levantas un backend o usas una base de datos… estás trabajando con direcciones IP, aunque no lo veas. Si no entiendes esto, no puedes diagnosticar errores reales en producción."*
 
 ---
 
-## 📊 Tipos de IP — Conceptos base
+## 🎯 Objetivo
 
-| Concepto | Definición simple | Nivel técnico | Ejemplo |
+- Comprender qué es una dirección IP y sus tipos
+- Entender cómo impacta directamente en el desarrollo
+- Diagnosticar errores de red relacionados con IPs como un developer profesional
+
+---
+
+## 1. ¿Qué es una dirección IP?
+
+Una dirección IP es el identificador único de un dispositivo dentro de una red. Sin ella, los paquetes de datos no sabrían a dónde ir. Es el equivalente a la dirección de una casa: sin dirección, el correo no llega.
+
+| Concepto | Definición simple | Nivel técnico breve | Ejemplo |
 |---|---|---|---|
-| **IP** — Dirección de red | El "domicilio" de tu dispositivo en la red. Permite enviar y recibir datos. | Número lógico asignado a cada dispositivo. Puede cambiar. | Tu compu en la red de tu casa. |
-| **IPv4** — Versión 4 | El formato de IP más usado hasta hoy. Tiene un límite de direcciones. | 4 grupos de números (0-255). Permite ~4.000 millones de direcciones. | `192.168.1.1` (tu router en casa) |
-| **IPv6** — Versión 6 | El reemplazo de IPv4. Creado porque el mundo se quedó sin direcciones IPv4. | 8 grupos en hexadecimal. Permite 340 sextillones de direcciones únicas. | `2001:0db8:85a3::8a2e:0370:7334` |
+| **IP** | Identificador único de un dispositivo en una red. | Número que permite enrutar paquetes entre dispositivos dentro y fuera de una red. | `192.168.1.5` (privada) / `142.250.80.46` (pública) |
+| **IPv4** | La versión más usada. Formato de 4 números separados por puntos. | 32 bits. Permite ~4.300 millones de direcciones únicas. Se están agotando. | `192.168.0.1`, `8.8.8.8` |
+| **IPv6** | La versión nueva. Formato más largo con letras y números. | 128 bits. Permite una cantidad prácticamente infinita de direcciones. | `2001:0db8:85a3::8a2e:0370:7334` |
 
 ---
 
-## 🔍 Tipos de IP — Clasificación
+## 2. Tipos de IP
 
-- **Pública vs Privada:** La pública es tu cara hacia internet; la privada es solo dentro de tu red local. Tu casa tiene una sola IP pública, pero todos los dispositivos adentro tienen su propia IP privada.
-
-- **Estática vs Dinámica:** Los servidores usan estática porque necesitan ser siempre localizables. Tu PC o celular usan dinámica porque no importa que cambie, tú no estás "ofreciendo" un servicio, solo consumiendo.
+- **IP pública vs privada:** La pública es visible desde internet y la asigna tu ISP o proveedor cloud. La privada existe solo dentro de una red local y no es accesible desde afuera.
+- **IP estática vs dinámica:** La estática no cambia nunca. La dinámica se asigna automáticamente cada vez que el dispositivo se conecta y puede cambiar.
 
 | Tipo | ¿Qué es? | ¿Cuándo se usa? | Ejemplo real |
 |---|---|---|---|
-| **Pública** — visible en internet | La IP que el mundo ve cuando salís a internet. La asigna tu proveedor de Internet (ISP). | Cuando tu app hace un fetch a una API externa. | `181.45.23.10` (IP de tu casa) |
-| **Privada** — solo en red local | La IP dentro de tu red local (tu casa, oficina). No es visible desde internet. | Comunicación interna: tu app hablando con la base de datos. | `192.168.1.5` (tu PC en casa) |
-| **Estática** — no cambia | Una IP fija que nunca cambia. Se configura manualmente. | Servidores en producción, donde los usuarios siempre necesitan encontrarte. | El servidor de google.com siempre en la misma IP. |
-| **Dinámica** — cambia cada vez | IP asignada automáticamente por el router. Puede cambiar cada vez que te conectás. | Dispositivos del hogar, celulares, laptops en redes normales. | Tu celular recibe una IP distinta cada día. |
+| **Pública** | Visible desde internet. La asigna el ISP o el proveedor cloud. | Servidores en producción, APIs accesibles desde fuera. | Servidor en AWS con IP pública `54.23.11.80`. |
+| **Privada** | Solo existe dentro de una red local. No accesible desde internet. | Dispositivos en red doméstica, servicios internos en data center. | Laptop en casa: `192.168.1.5`. Base de datos interna: `10.0.0.4`. |
+| **Estática** | No cambia. Se configura manualmente o se reserva. | Servidores que necesitan siempre la misma dirección. | Base de datos siempre en `10.0.0.10` para que la app siempre lo encuentre. |
+| **Dinámica** | Se asigna automáticamente y puede cambiar en cada conexión. | Dispositivos de usuario, instancias cloud temporales. | Laptop recibe IP distinta cada vez que se conecta al WiFi. |
 
 ---
 
-## 💻 Conexión directa con desarrollo
+## 3. Conexión directa con desarrollo
 
-### ¿Qué IP usa tu backend cuando está en…?
+| Entorno | IP | Qué significa |
+|---|---|---|
+| Local (`localhost`) | `127.0.0.1` | Dirección de loopback. Solo tu propia máquina puede acceder. |
+| Red local | `192.168.x.x` | Tu máquina dentro de la red local. Otros en la misma red pueden acceder. |
+| Producción | IP pública (ej: `54.23.11.80`) | Accesible desde internet. Asignada por el proveedor cloud o ISP. |
 
-- **Local (`localhost`):** `127.0.0.1` — Solo existe en tu máquina, no sale a la red.
-- **Producción:** Tu servidor tiene una IP pública estática asignada por el proveedor cloud (AWS, Railway, Render, etc.)
+### ¿Por qué no puedes acceder al `localhost` de otro computador?
+Porque `127.0.0.1` es una dirección de loopback: solo existe dentro de tu propia máquina. No hay paquete que salga a la red. Es como intentar llamar al número de tu propio teléfono desde otro teléfono.
 
-### ¿Por qué no puedes acceder a `localhost` desde otro computador?
-
-Desde otra máquina, estás buscando su propio bucle interno, no el tuyo.
-
-### ¿Qué pasa cuando haces `npm run dev` o levantás un servidor en `127.0.0.1`?
-
-`npm run dev` levanta el servidor en `127.0.0.1:3000` por defecto, solo en tu máquina.
+### ¿Qué pasa cuando haces `npm run dev`?
+El servidor escucha peticiones solo en tu máquina. Si quieres que otros en tu red local también puedan acceder, debes levantar el servidor en `0.0.0.0` — eso significa "escuchar en todas las interfaces de red disponibles".
 
 ### ¿Qué IP usa una base de datos en la nube?
-
-Usa una IP privada interna (ej: `10.0.0.5`), solo visible desde el mismo servidor. Nunca expuesta directamente a internet.
+Casi siempre una IP privada dentro del VPC — por seguridad, no debería ser accesible desde internet. Tu servidor de app se conecta a ella usando esa IP privada interna (ej: `10.0.0.4:5432`).
 
 ---
 
-## 🐛 Caso práctico real (debugging)
+## 4. Caso práctico — frontend no se conecta al backend
 
-**Escenario:** "Tu frontend funciona, pero no logra conectarse al backend."
-
-### ¿Podría ser problema de IP? ¿Por qué?
-
-- El frontend apunta a una IP incorrecta (ej: `localhost` en vez de la IP del servidor).
-- El backend está escuchando en otra IP/red y no se puede comunicar.
+**¿Podría ser problema de IP?** Sí, y es uno de los errores más comunes. El frontend está apuntando a `localhost` o a una IP incorrecta. En producción, `localhost` no funciona porque el frontend y el backend corren en máquinas distintas.
 
 ### ¿Qué revisarías primero?
+- ¿La URL del backend en el frontend apunta a la IP/dominio correcto en producción?
+- ¿El backend está escuchando en `0.0.0.0` y no solo en `127.0.0.1`?
+- ¿El puerto está abierto en el firewall?
+- ¿La IP del servidor cambió? (IP dinámica sin dominio fijo)
 
-1. URL del backend (IP + puerto).
-2. Que el backend esté corriendo.
-3. Que el puerto esté abierto.
-4. Logs del backend y consola del frontend.
+### Errores típicos
 
-### ¿Qué errores típicos ocurren?
-
-- IP incorrecta (`localhost` vs IP real).
-- Puerto equivocado.
-- Backend escuchando solo en `127.0.0.1`.
-- Firewall bloqueando la conexión.
-- CORS mal configurado.
-- HTTPS vs HTTP mezclados.
+| Error | Causa |
+|---|---|
+| `Connection refused` | El backend no está corriendo o escucha en IP incorrecta. |
+| `ERR_NAME_NOT_RESOLVED` | El dominio o IP en la URL del fetch no existe o está mal escrito. |
+| `Network timeout` | El puerto está bloqueado por firewall o la IP no es alcanzable. |
+| Frontend apuntando a `localhost` en prod | El dev olvidó cambiar la URL de desarrollo a producción. |
 
 ---
 
-## 🔧 DHCP y DNS
+## 5. DHCP y DNS
 
 ### ¿Qué hace DHCP?
-
-Asigna automáticamente una IP a tu dispositivo cuando te conectás a una red (además de gateway y DNS).
+DHCP (Dynamic Host Configuration Protocol) es el servicio que asigna IPs automáticamente a los dispositivos cuando se conectan a una red. Sin él, tendrías que configurar manualmente la IP de cada dispositivo.
 
 ### ¿Qué hace DNS?
+DNS traduce nombres de dominio legibles (como `google.com`) a IPs numéricas (como `142.250.80.46`). Sin DNS tendrías que memorizar IPs para acceder a cada sitio.
 
-Traduce nombres de dominio (ej: `google.com`) a direcciones IP.
+### ¿Qué pasa cuando escribes `google.com` en el navegador?
 
-### ¿Qué pasa cuando escribís `google.com` en el navegador?
+```
+1. Tu navegador busca en su caché si ya conoce la IP de google.com
+2. Si no, pregunta al DNS Resolver de tu ISP
+3. El resolver pregunta al servidor raíz → servidor TLD (.com) → servidor de Google
+4. Obtiene la IP: 142.250.80.46
+5. Tu navegador se conecta directamente a esa IP
+6. El servidor de Google responde con la página
 
-1. Tu PC se conecta a la red → DHCP le da una IP y DNS.
-2. Escribís `google.com` en el navegador.
-3. Tu PC pregunta al DNS: "¿qué IP tiene google.com?"
-4. DNS responde con una IP.
-5. El navegador se conecta a esa IP (HTTP/HTTPS).
-6. El servidor responde y carga la página.
-
----
-
-## 🐄 Analogía (con vacas)
-
-### IP
-
-Imaginá que tenés dos vacas: una se llama **Manchas** y la otra **Cuernos Rotos**.
-
-Cada vaca necesita una dirección para que el granjero sepa dónde enviarle el agua o comida. Esa dirección es la IP.
-
-- **Manchas** tiene la IP `192.168.1.10`
-- **Cuernos Rotos** tiene la IP `192.168.1.25`
-
-Es como la matrícula del coche o el DNI de la vaca. Sin IP, nadie sabe dónde está.
-
-### DNS
-
-Es una libreta donde está anotado dónde vive la vaca.
-
-Vos no le decís al cartero: "lleva esta carta a `192.168.1.10`". Le decís: "lleva esto a la vaca Manchas". El DNS es el que traduce el nombre fácil (`lavacamanchas.com`) en vez de la IP (`192.168.1.10`).
-
-### DHCP
-
-Imaginá que llegan 50 vacas nuevas a la granja cada día. No vas una por una diciéndoles sus IPs. Para eso está el DHCP, que reparte IPs automáticamente.
-
-Cuando **Cuernos Rotos** llega nueva a la granja:
-
-- La vaca grita: "¡Eh! ¡Necesito una IP!"
-- El servidor DHCP responde: "Tranquila, te doy la `192.168.1.67` por 24 horas. Si te portás bien, te la renuevo."
-- La vaca acepta y ya tiene dirección. Todo automático.
-
-Si no hubiera DHCP, tendrías que configurar la IP a mano en cada vaca.
+Todo esto ocurre en milisegundos.
+```
 
 ---
 
-## 📝 Resumen
+## 6. Analogías
 
-| Concepto | Descripción |
+| Concepto | Analogía |
 |---|---|
-| **IP** | La dirección de la casa donde vive cada vaca para poder encontrarla. |
-| **DNS** | Una libreta donde anotás el nombre de la vaca y su dirección. |
-| **DHCP** | El granjero que le asigna automáticamente una casa a cada vaca cuando llega al campo. |
+| **IP** | La dirección de tu casa: sin ella, el correo no sabe dónde llegar. |
+| **DNS** | La agenda de contactos: no memorizas el número, buscas el nombre y la agenda te da el número. |
+| **DHCP** | El administrador de un edificio que asigna automáticamente un departamento a cada nuevo inquilino cuando llega. |
+
+---
+
+## 7. Bonus — NAT, Docker y AWS EC2
+
+### NAT (Network Address Translation)
+Permite que múltiples dispositivos con IPs privadas compartan una sola IP pública para salir a internet. El router lleva un registro de qué dispositivo interno hizo cada petición para devolver la respuesta correcta. Sin NAT, necesitaríamos una IP pública por cada dispositivo del mundo.
+
+### IPs en Docker
+Cada contenedor Docker recibe su propia IP privada dentro de una red virtual interna (ej: `172.17.0.2`). Los contenedores se comunican entre sí usando esas IPs o por nombres de servicio en Docker Compose. Para que el exterior acceda, se mapea un puerto del host al puerto del contenedor.
+
+### IPs en AWS EC2
+Una instancia EC2 tiene siempre una IP privada (dentro del VPC). Si necesita ser accesible desde internet, se le asigna una IP pública que cambia cada vez que la instancia se reinicia. Para tener una IP pública fija se usa una **Elastic IP**: una IP estática que puedes asociar permanentemente a tu instancia.
+
+---
+
+## 8. Glosario de términos
+
+| Término | ¿Qué es? (en simple) | Ejemplo de uso |
+|---|---|---|
+| **IP** | Identificador único de un dispositivo en una red. Como la dirección de una casa. | Tu laptop: `192.168.1.5`. Servidor AWS: `54.23.11.80`. |
+| **IPv4** | Versión clásica de IP. Formato de 4 números separados por puntos. | `192.168.0.1`, `8.8.8.8` (DNS de Google). |
+| **IPv6** | Versión nueva de IP con más capacidad. Formato largo con letras y números. | `2001:0db8::8a2e:0370:7334`. Cada dispositivo puede tener dirección única. |
+| **IP pública** | Dirección visible desde internet. La asigna tu ISP o proveedor cloud. | Servidor en AWS con IP `54.23.11.80`. Cualquiera en internet puede conectarse. |
+| **IP privada** | Dirección solo dentro de una red local. No accesible desde internet. | Laptop en casa: `192.168.1.5`. Base de datos en VPC: `10.0.0.4`. |
+| **IP estática** | Dirección que no cambia. Se configura manualmente o se reserva. | Servidor de BD siempre en `10.0.0.10` para que la app siempre lo encuentre. |
+| **IP dinámica** | Dirección asignada automáticamente que puede cambiar en cada conexión. | Tu laptop recibe IP distinta cada vez que se conecta al WiFi. |
+| **localhost** | Nombre especial que apunta siempre a tu propia máquina. Equivale a `127.0.0.1`. | `npm run dev` levanta tu app en `http://localhost:3000`. Solo tú puedes acceder. |
+| **127.0.0.1** | Dirección de loopback. Todo lo que se envía aquí vuelve a tu propia máquina. | `http://127.0.0.1:5000` solo funciona en tu computador. Nadie más puede verlo. |
+| **0.0.0.0** | Significa escuchar en todas las interfaces de red disponibles. | Backend en `0.0.0.0:3000` permite acceso tanto local como desde la red. |
+| **Puerto** | Número que identifica un servicio dentro de un servidor. | Puerto `3000` = app local. Puerto `5432` = PostgreSQL. Puerto `443` = HTTPS. |
+| **DHCP** | Servicio que asigna IPs automáticamente cuando un dispositivo se conecta a la red. | Al conectar tu laptop al WiFi, el router le asigna automáticamente `192.168.1.8`. |
+| **DNS** | Sistema que traduce nombres de dominio a IPs. Sin él tendrías que memorizar números. | `api.miapp.com` → DNS lo convierte en `54.23.11.80` → tu app se conecta. |
+| **NAT** | Permite que dispositivos con IPs privadas compartan una IP pública para salir a internet. | 5 dispositivos en tu casa salen a internet con la misma IP pública del router. |
+| **Loopback** | Interfaz de red virtual que apunta siempre a tu propia máquina. No sale a la red. | Probar tu backend localmente. Todo lo que va a `127.0.0.1` se queda en tu máquina. |
+| **Elastic IP** | IP pública fija en AWS que no cambia aunque reinicies tu servidor. | Instancia EC2 con Elastic IP siempre tiene la misma dirección pública. |
+| **VPC** | Red privada virtual dentro de un proveedor cloud. Como tu red local, pero en la nube. | Servidor y base de datos en el mismo VPC con IPs privadas, aislados del exterior. |
+| **Firewall** | Sistema que filtra el tráfico de red según reglas. Bloquea conexiones no autorizadas. | Backend no accesible aunque esté corriendo: el firewall puede bloquear el puerto `3000`. |
+| **Contenedor (Docker)** | Entorno aislado donde corre una app con su propia IP privada interna. | App en Docker con IP `172.17.0.2`. Se mapea un puerto del host para acceder desde fuera. |
+
+---
+
+## 💡 TL;DR
+
+| Concepto | En simple |
+|---|---|
+| **IP** | Identificador único de un dispositivo en red — sin ella los paquetes no saben a dónde ir |
+| **IPv4 / IPv6** | Formatos de IP — IPv4 se está agotando, IPv6 es el reemplazo con más capacidad |
+| **Pública / Privada** | Pública = visible en internet. Privada = solo en red local |
+| **Estática / Dinámica** | Estática = nunca cambia. Dinámica = puede cambiar en cada conexión |
+| **localhost** | Solo accesible desde tu propia máquina — en producción necesitas IP pública o dominio |
+| **DHCP** | Asigna IPs automáticamente cuando un dispositivo se conecta |
+| **DNS** | Traduce dominios a IPs para que no tengas que memorizar números |
+| **Elastic IP** | IP pública fija en AWS — no cambia aunque reinicies el servidor |
+
+---
+
+> *"Saber programar sin entender IPs es como saber escribir cartas sin saber direcciones… puedes hacer el mensaje perfecto, pero nunca va a llegar."*
